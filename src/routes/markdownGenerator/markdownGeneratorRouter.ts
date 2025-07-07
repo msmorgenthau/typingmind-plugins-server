@@ -27,10 +27,15 @@ markdownGeneratorRegistry.registerPath({
 
 // Create folder to contain generated files
 const exportsDir = path.join(__dirname, '../../..', 'markdown-exports');
+
 // Ensure the exports directory exists
-if (!fs.existsSync(exportsDir)) {
-  fs.mkdirSync(exportsDir, { recursive: true });
-}
+const ensureExportsDir = async () => {
+  try {
+    await fs.promises.access(exportsDir);
+  } catch {
+    await fs.promises.mkdir(exportsDir, { recursive: true });
+  }
+};
 
 // Clean up old files every hour
 cron.schedule('0 * * * *', () => {
@@ -138,6 +143,9 @@ const generateMarkdown = async (req: Request, res: Response) => {
     // Generate unique file ID and write file
     const fileId = randomUUID();
     const filePath = path.join(exportsDir, `${fileId}.md`);
+
+    // Ensure directory exists before writing
+    await ensureExportsDir();
 
     // Write markdown file
     await fs.promises.writeFile(filePath, markdownContent, 'utf8');
