@@ -19,6 +19,13 @@ const generateMarkdown = (req: Request, res: Response) => {
 
 export const markdownGeneratorRouter: Router = (() => {
   const router = express.Router();
+
+  // Simple GET test endpoint
+  router.get('/test', (req: Request, res: Response) => {
+    console.log('GET test endpoint called');
+    res.json({ success: true, message: 'GET test works!' });
+  });
+
   router.post('/generate', generateMarkdown);
   return router;
 })();
