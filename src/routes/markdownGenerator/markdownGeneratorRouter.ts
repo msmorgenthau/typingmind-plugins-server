@@ -3,7 +3,7 @@ import express, { Request, Response, Router } from 'express';
 
 // Ultra-simple test function - no OpenAPI registration, no complex logic
 const generateMarkdown = (req: Request, res: Response) => {
-  console.log('Ultra-simple markdown generator called');
+  console.log('Ultra-simple markdown generator POST called - this should work!');
 
   res.json({
     success: true,
@@ -18,15 +18,18 @@ const generateMarkdown = (req: Request, res: Response) => {
 };
 
 export const markdownGeneratorRouter: Router = (() => {
+  console.log('Creating markdown generator router...');
   const router = express.Router();
 
   // Simple GET test endpoint
   router.get('/test', (req: Request, res: Response) => {
-    console.log('GET test endpoint called');
+    console.log('GET test endpoint called - this should work!');
     res.json({ success: true, message: 'GET test works!' });
   });
 
   router.post('/generate', generateMarkdown);
+
+  console.log('Markdown generator router created successfully');
   return router;
 })();
 
