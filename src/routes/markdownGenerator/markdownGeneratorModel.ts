@@ -22,9 +22,7 @@ export const MarkdownGeneratorRequestBodySchema = z.object({
 });
 
 export const MarkdownGeneratorResponseSchema = z.object({
-  downloadUrl: z.string().describe('URL to download the generated markdown file'),
-  filename: z.string().describe('Name of the generated file'),
-  fileSize: z.number().describe('Size of the file in bytes'),
+  markdownContent: z.string().describe('The generated markdown content'),
   wordCount: z.number().describe('Number of words in the document'),
-  expiresAt: z.string().describe('When the file will be automatically deleted'),
+  message: z.string().describe('Instructions for the user'),
 });
