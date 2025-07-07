@@ -31,9 +31,12 @@ const exportsDir = path.join(__dirname, '../../..', 'markdown-exports');
 // Ensure the exports directory exists
 const ensureExportsDir = async () => {
   try {
-    await fs.promises.access(exportsDir);
-  } catch {
     await fs.promises.mkdir(exportsDir, { recursive: true });
+  } catch (error) {
+    // Directory might already exist, which is fine
+    if ((error as any)?.code !== 'EEXIST') {
+      throw error;
+    }
   }
 };
 
@@ -72,11 +75,15 @@ cron.schedule('0 * * * *', () => {
 
 // Main markdown generation function
 const generateMarkdown = async (req: Request, res: Response) => {
+  console.log('Markdown generation started');
+
   try {
     const { title, content, filename, includeMetadata = true, markdownStyle = 'standard', sections = [] } = req.body;
+    console.log('Request body parsed:', { title, content: content?.length, filename, includeMetadata, markdownStyle });
 
     // Validation
     if (!title || !content) {
+      console.log('Validation failed: missing title or content');
       const serviceResponse = ServiceResponse.failure(
         '[Validation Error] Title and content are required!',
         'Please make sure you have provided both title and content.',
@@ -85,6 +92,7 @@ const generateMarkdown = async (req: Request, res: Response) => {
       return handleServiceResponse(serviceResponse, res);
     }
 
+    console.log('Starting markdown content generation');
     // Build markdown content
     let markdownContent = '';
 
@@ -130,6 +138,8 @@ const generateMarkdown = async (req: Request, res: Response) => {
         break;
     }
 
+    console.log('Markdown content generated, length:', markdownContent.length);
+
     // Generate filename
     let finalFilename = filename || title.toLowerCase().replace(/[^a-z0-9]/g, '-') || 'generated-document';
 
@@ -140,22 +150,32 @@ const generateMarkdown = async (req: Request, res: Response) => {
       .replace(/[^0-9]/g, '');
     finalFilename += `-${timestamp}.md`;
 
+    console.log('Final filename:', finalFilename);
+
     // Generate unique file ID and write file
     const fileId = randomUUID();
     const filePath = path.join(exportsDir, `${fileId}.md`);
+    console.log('File path:', filePath);
 
     // Ensure directory exists before writing
+    console.log('Ensuring exports directory exists');
     await ensureExportsDir();
+    console.log('Directory creation completed');
 
     // Write markdown file
+    console.log('Writing markdown file');
     await fs.promises.writeFile(filePath, markdownContent, 'utf8');
+    console.log('File written successfully');
 
     // Calculate stats
+    console.log('Calculating file stats');
     const stats = await fs.promises.stat(filePath);
     const wordCount = markdownContent.split(/\s+/).filter((word) => word.length > 0).length;
+    console.log('Stats calculated:', { size: stats.size, wordCount });
 
     // Generate download URL
     const downloadUrl = `${req.protocol}://${req.get('host')}/markdown-generator/downloads/${fileId}.md`;
+    console.log('Download URL:', downloadUrl);
 
     // Create response object
     const responseObject = {
@@ -166,6 +186,7 @@ const generateMarkdown = async (req: Request, res: Response) => {
       expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
     };
 
+    console.log('Sending success response');
     const serviceResponse = ServiceResponse.success('Markdown file generated successfully!', responseObject);
     return handleServiceResponse(serviceResponse, res);
   } catch (error) {
