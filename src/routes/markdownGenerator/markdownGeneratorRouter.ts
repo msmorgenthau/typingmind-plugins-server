@@ -1,50 +1,19 @@
-import { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi';
 import express, { Request, Response, Router } from 'express';
-import { StatusCodes } from 'http-status-codes';
 
-import { createApiRequestBody } from '@/api-docs/openAPIRequestBuilders';
-import { createApiResponse } from '@/api-docs/openAPIResponseBuilders';
-import { ServiceResponse } from '@/common/models/serviceResponse';
-import { handleServiceResponse } from '@/common/utils/httpHandlers';
+// Ultra-simple test function - no OpenAPI, no complex logic
+const generateMarkdown = (req: Request, res: Response) => {
+  console.log('Ultra-simple markdown generator called');
 
-import { MarkdownGeneratorRequestBodySchema, MarkdownGeneratorResponseSchema } from './markdownGeneratorModel';
-
-export const markdownGeneratorRegistry = new OpenAPIRegistry();
-markdownGeneratorRegistry.register('MarkdownGenerator', MarkdownGeneratorResponseSchema);
-markdownGeneratorRegistry.registerPath({
-  method: 'post',
-  path: '/markdown-generator/generate',
-  tags: ['Markdown Generator'],
-  request: {
-    body: createApiRequestBody(MarkdownGeneratorRequestBodySchema, 'application/json'),
-  },
-  responses: createApiResponse(MarkdownGeneratorResponseSchema, 'Success'),
-});
-
-// Minimal test function
-const generateMarkdown = async (req: Request, res: Response) => {
-  try {
-    console.log('Markdown generator called');
-
-    const responseObject = {
-      markdownContent: '# Test\n\nThis is a minimal test response.',
-      wordCount: 7,
-      message: 'This is a test response',
-    };
-
-    console.log('Sending response');
-
-    const serviceResponse = ServiceResponse.success('Test successful!', responseObject);
-    return handleServiceResponse(serviceResponse, res);
-  } catch (error) {
-    console.error('Error in markdown generator:', error);
-    const serviceResponse = ServiceResponse.failure(
-      'Test failed',
-      error instanceof Error ? error.message : 'Unknown error',
-      StatusCodes.INTERNAL_SERVER_ERROR
-    );
-    return handleServiceResponse(serviceResponse, res);
-  }
+  res.json({
+    success: true,
+    message: 'Ultra-simple test successful!',
+    responseObject: {
+      markdownContent: '# Test\n\nThis works!',
+      wordCount: 3,
+      message: 'Copy this content and save as .md file',
+    },
+    statusCode: 200,
+  });
 };
 
 export const markdownGeneratorRouter: Router = (() => {
@@ -52,3 +21,6 @@ export const markdownGeneratorRouter: Router = (() => {
   router.post('/generate', generateMarkdown);
   return router;
 })();
+
+// Empty registry for compatibility
+export const markdownGeneratorRegistry = { register: () => {}, registerPath: () => {} };
