@@ -1,17 +1,41 @@
 import { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi';
 import express, { Request, Response, Router } from 'express';
 
-// Ultra-simple test function - no OpenAPI registration, no complex logic
+// Process actual markdown generation from request
 const generateMarkdown = (req: Request, res: Response) => {
-  console.log('Ultra-simple markdown generator POST called - this should work!');
+  console.log('Markdown generator called with body:', req.body);
+
+  const { content, title } = req.body;
+
+  if (!content || !title) {
+    return res.status(400).json({
+      success: false,
+      message: 'Missing required fields: content and title',
+      statusCode: 400,
+    });
+  }
+
+  // Create the markdown content
+  const markdownContent = `# ${title}\n\n${content}`;
+
+  // Calculate word count
+  const wordCount = markdownContent.split(/\s+/).filter((word) => word.length > 0).length;
+
+  // Generate suggested filename
+  const filename = `${title
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')}.md`;
 
   res.json({
     success: true,
-    message: 'Ultra-simple test successful!',
+    message: 'Markdown file generated successfully!',
     responseObject: {
-      markdownContent: '# Test\n\nThis works!',
-      wordCount: 3,
-      message: 'Copy this content and save as .md file',
+      markdownContent,
+      wordCount,
+      filename,
+      message: `Copy the content above and save as "${filename}"`,
     },
     statusCode: 200,
   });
