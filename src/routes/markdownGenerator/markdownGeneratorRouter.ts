@@ -1,6 +1,7 @@
+import { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi';
 import express, { Request, Response, Router } from 'express';
 
-// Ultra-simple test function - no OpenAPI, no complex logic
+// Ultra-simple test function - no OpenAPI registration, no complex logic
 const generateMarkdown = (req: Request, res: Response) => {
   console.log('Ultra-simple markdown generator called');
 
@@ -22,5 +23,5 @@ export const markdownGeneratorRouter: Router = (() => {
   return router;
 })();
 
-// Empty registry for compatibility
-export const markdownGeneratorRegistry = { register: () => {}, registerPath: () => {} };
+// Proper registry for compatibility - create actual registry but don't register anything
+export const markdownGeneratorRegistry = new OpenAPIRegistry();
