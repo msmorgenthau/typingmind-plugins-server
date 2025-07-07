@@ -21,25 +21,50 @@ markdownGeneratorRegistry.registerPath({
   responses: createApiResponse(MarkdownGeneratorResponseSchema, 'Success'),
 });
 
-// Minimal test function
+// Simple markdown generation function - no file creation
 const generateMarkdown = async (req: Request, res: Response) => {
   try {
-    console.log('Markdown generator called');
+    const { title = 'Generated Document', content = '', includeMetadata = true, markdownStyle = 'standard' } = req.body;
 
+    console.log('Generating markdown for:', title);
+
+    // Build markdown content
+    let markdownContent = '';
+
+    // Add metadata if requested
+    if (includeMetadata) {
+      const now = new Date();
+      markdownContent += `---\n`;
+      markdownContent += `title: ${title}\n`;
+      markdownContent += `created: ${now.toISOString()}\n`;
+      markdownContent += `generated_by: TypingMind Markdown Generator\n`;
+      markdownContent += `---\n\n`;
+    }
+
+    // Add title and content
+    markdownContent += `# ${title}\n\n`;
+    markdownContent += content + '\n\n';
+
+    // Apply style
+    if (markdownStyle === 'github') {
+      markdownContent += '\n---\n*Generated with TypingMind*\n';
+    }
+
+    // Return markdown content directly instead of file
     const responseObject = {
-      markdownContent: '# Test\n\nThis is a minimal test response.',
-      wordCount: 7,
-      message: 'This is a test response',
+      markdownContent,
+      wordCount: markdownContent.split(/\s+/).filter((word) => word.length > 0).length,
+      message: 'Copy the markdown content below and save it as a .md file',
     };
 
-    console.log('Sending response');
+    console.log('Markdown generated successfully');
 
-    const serviceResponse = ServiceResponse.success('Test successful!', responseObject);
+    const serviceResponse = ServiceResponse.success('Markdown generated successfully!', responseObject);
     return handleServiceResponse(serviceResponse, res);
   } catch (error) {
-    console.error('Error in markdown generator:', error);
+    console.error('Error generating markdown:', error);
     const serviceResponse = ServiceResponse.failure(
-      'Test failed',
+      'Failed to generate markdown',
       error instanceof Error ? error.message : 'Unknown error',
       StatusCodes.INTERNAL_SERVER_ERROR
     );
